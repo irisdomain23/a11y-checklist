@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Front-end accessibility checklist</title>
+    <style>
+      :root {
+        --fg: #16181d;
+        --bg: #fbfbfc;
+        --card: #ffffff;
+        --muted: #5b616e;
+        --border: #dcdfe5;
+        --accent: #1d4ed8;
+        --done: #1a7f4b;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --fg: #e8eaee;
+          --bg: #101216;
+          --card: #181b21;
+          --muted: #a3a9b5;
+          --border: #333844;
+          --accent: #7aa2f7;
+          --done: #5cc48c;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 2.5rem 1.25rem 4rem;
+        background: var(--bg);
+        color: var(--fg);
+        font: 1rem/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+
+      .wrap {
+        max-width: 46rem;
+        margin-inline: auto;
+      }
+
+      h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.5rem;
+        letter-spacing: -0.01em;
+      }
+
+      .lede {
+        margin: 0 0 1.5rem;
+        color: var(--muted);
+        max-width: 52ch;
+      }
+
+      #controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        padding: 0.85rem 1rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--card);
+      }
+
+      #progress {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        margin: 0;
+        margin-inline-end: auto;
+      }
+
+      button {
+        font: inherit;
+        min-height: 2.25rem;
+        padding: 0 0.85rem;
+        color: var(--fg);
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        border-color: var(--accent);
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      section {
+        margin-bottom: 2rem;
+      }
+
+      h2 {
+        font-size: 0.8125rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--muted);
+        margin: 0 0 0.75rem;
+      }
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 0.5rem;
+      }
+
+      li {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--card);
+      }
+
+      .item {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.25rem 0.75rem;
+        padding: 0.85rem 1rem;
+        cursor: pointer;
+      }
+
+      .item input {
+        width: 1.15rem;
+        height: 1.15rem;
+        margin: 0.3rem 0 0;
+        accent-color: var(--accent);
+      }
+
+      .item .label {
+        font-weight: 500;
+      }
+
+      .item .hint {
+        grid-column: 2;
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9375rem;
+      }
+
+      /* Checked state is carried by the box, the text, and a word — never colour alone. */
+      li:has(input:checked) {
+        border-color: var(--done);
+      }
+
+      li:has(input:checked) .label {
+        text-decoration: line-through;
+        text-decoration-thickness: 1px;
+      }
+
+      li:has(input:checked) .label::after {
+        content: " (done)";
+        text-decoration: none;
+        color: var(--done);
+        font-weight: 600;
+      }
+
+      body.hide-done li:has(input:checked) {
+        display: none;
+      }
+
+      .skip {
+        position: absolute;
+        left: -9999px;
+      }
+
+      .skip:focus {
+        left: 1rem;
+        top: 1rem;
+        padding: 0.5rem 0.75rem;
+        background: var(--card);
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+      }
+
+      footer {
+        color: var(--muted);
+        font-size: 0.9375rem;
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+      }
+
+      @media print {
+        #controls,
+        .skip {
+          display: none;
+        }
+
+        body {
+          padding: 0;
+        }
+
+        li {
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#list">Skip to the checklist</a>
+
+    <div class="wrap">
+      <header>
+        <h1>Front-end accessibility checklist</h1>
+        <p class="lede">
+          Twenty-four things worth checking before a front-end change ships. Not a substitute
+          for WCAG — a way to catch the failures that keep coming back. Works offline, and
+          works with JavaScript switched off.
+        </p>
+      </header>
+
+      <div id="controls" hidden>
+        <p id="progress" role="status">0 of 24 checked</p>
+        <button type="button" id="toggle-done" aria-pressed="false">Hide done</button>
+        <button type="button" id="reset">Reset</button>
+      </div>
+
+      <main id="list">
+        <section aria-labelledby="h-structure">
+          <h2 id="h-structure">Structure</h2>
+          <ul>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">The page has one h1 and headings do not skip levels</span>
+                <p class="hint">Read the outline alone. If it does not describe the page, the markup does not either.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Landmarks wrap the page: header, nav, main, footer</span>
+                <p class="hint">Exactly one main. Multiple navs need distinct aria-labels.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">The title element names the page, then the site</span>
+                <p class="hint">It is the first thing a screen reader announces after navigation.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">lang is set on html, and on any passage in another language</span>
+                <p class="hint">Wrong lang means the wrong pronunciation for the whole page.</p>
+              </label>
+            </li>
+          </ul>
+        </section>
+
+        <section aria-labelledby="h-keyboard">
+          <h2 id="h-keyboard">Keyboard</h2>
+          <ul>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Every interactive element is reachable with Tab</span>
+                <p class="hint">A div with an onclick is not. Use a button.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Focus is always visible, including on dark backgrounds</span>
+                <p class="hint">If outline: none appears anywhere, something must replace it.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Focus is not trapped, and returns sensibly after a dialog closes</span>
+                <p class="hint">It belongs on the control that opened the dialog.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Escape closes overlays, menus, and tooltips</span>
+                <p class="hint">Hover-only behaviour is unusable without a mouse.</p>
+              </label>
+            </li>
+          </ul>
+        </section>
+
+        <section aria-labelledby="h-forms">
+          <h2 id="h-forms">Forms</h2>
+          <ul>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Every input has a visible, associated label</span>
+                <p class="hint">Placeholder text is not a label, and vanishes as soon as typing starts.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Errors are linked to their field and announced</span>
+                <p class="hint">aria-describedby to the message, aria-invalid on the field, live region for the summary.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Required fields are marked in text, not by colour or an asterisk alone</span>
+                <p class="hint">Pair the visual marker with required on the element.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">autocomplete is set on name, email, address, and payment fields</span>
+                <p class="hint">WCAG 1.3.5, and it saves everyone time.</p>
+              </label>
+            </li>
+          </ul>
+        </section>
+
+        <section aria-labelledby="h-media">
+          <h2 id="h-media">Images and media</h2>
+          <ul>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Informative images have alt text describing their purpose</span>
+                <p class="hint">Describe what the image is doing here, not what it depicts.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Decorative images have alt=""</span>
+                <p class="hint">A missing alt attribute makes screen readers read the file name.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Video has captions and a transcript</span>
+                <p class="hint">Auto-generated captions still need a pass for names and jargon.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Nothing plays audio automatically</span>
+                <p class="hint">If it must, give a pause control in the first tab stop.</p>
+              </label>
+            </li>
+          </ul>
+        </section>
+
+        <section aria-labelledby="h-colour">
+          <h2 id="h-colour">Colour and contrast</h2>
+          <ul>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Body text meets 4.5:1, large text 3:1</span>
+                <p class="hint">Check the states too: disabled, placeholder, and hover.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Icons, borders, and focus rings meet 3:1</span>
+                <p class="hint">A 1px hairline border on white usually fails.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">No meaning is carried by colour alone</span>
+                <p class="hint">Red and green need a word, an icon, or a shape as well.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">The page survives forced-colors mode</span>
+                <p class="hint">Backgrounds drawn with box-shadow or background-image disappear.</p>
+              </label>
+            </li>
+          </ul>
+        </section>
+
+        <section aria-labelledby="h-motion">
+          <h2 id="h-motion">Motion and layout</h2>
+          <ul>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">prefers-reduced-motion is respected</span>
+                <p class="hint">Cut parallax, autoplay carousels, and long transitions — do not just shorten them.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Content reflows at 320px wide and at 200% zoom</span>
+                <p class="hint">No horizontal scrolling, no clipped text.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Targets are at least 24 by 24 CSS pixels, or well spaced</span>
+                <p class="hint">WCAG 2.2, 2.5.8. Icon-only buttons are the usual offender.</p>
+              </label>
+            </li>
+            <li>
+              <label class="item">
+                <input type="checkbox" />
+                <span class="label">Async updates are announced</span>
+                <p class="hint">A spinner that only spins tells a screen reader nothing.</p>
+              </label>
+            </li>
+          </ul>
+        </section>
+      </main>
+
+      <footer>
+        <p>
+          Progress is stored in this browser only. Nothing is uploaded, and there is no
+          network request on this page.
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var KEY = "a11y-checklist:v1";
+        var boxes = Array.prototype.slice.call(
+          document.querySelectorAll(".item input[type=checkbox]")
+        );
+        var controls = document.getElementById("controls");
+        var progress = document.getElementById("progress");
+        var toggleDone = document.getElementById("toggle-done");
+        var reset = document.getElementById("reset");
+
+        // Give each box a stable id so saved state survives copy edits above it.
+        boxes.forEach(function (box, index) {
+          box.dataset.key = String(index);
+        });
+
+        function read() {
+          try {
+            return JSON.parse(localStorage.getItem(KEY) || "[]");
+          } catch (error) {
+            return [];
+          }
+        }
+
+        function write(state) {
+          try {
+            localStorage.setItem(KEY, JSON.stringify(state));
+          } catch (error) {
+            /* Private mode, or file:// with storage blocked. Checking still works. */
+          }
+        }
+
+        function render() {
+          var done = boxes.filter(function (box) {
+            return box.checked;
+          }).length;
+          progress.textContent = done + " of " + boxes.length + " checked";
+        }
+
+        var saved = read();
+        boxes.forEach(function (box) {
+          box.checked = saved.indexOf(box.dataset.key) !== -1;
+          box.addEventListener("change", function () {
+            var state = boxes
+              .filter(function (item) {
+                return item.checked;
+              })
+              .map(function (item) {
+                return item.dataset.key;
+              });
+            write(state);
+            render();
+          });
+        });
+
+        toggleDone.addEventListener("click", function () {
+          var hidden = document.body.classList.toggle("hide-done");
+          toggleDone.setAttribute("aria-pressed", String(hidden));
+          toggleDone.textContent = hidden ? "Show done" : "Hide done";
+        });
+
+        reset.addEventListener("click", function () {
+          boxes.forEach(function (box) {
+            box.checked = false;
+          });
+          write([]);
+          render();
+        });
+
+        controls.hidden = false;
+        render();
+      })();
+    </script>
+  </body>
+</html>
